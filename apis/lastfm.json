@@ -1,0 +1,68 @@
+{
+	"service" : "Last.FM",
+	"url" : "ws.audioscrobbler.com/2.0/",
+
+	"docs" : {
+		"root" : "http://www.last.fm/api",
+		"pattern" : "http://www.last.fm/api/show?service=%docs_id"
+	},
+
+	"authentication" : {
+		"oauth" : {
+			"url" : "http://www.last.fm/api/auth/"
+		}
+	},
+
+	"vars" : {
+		"format" : "json"
+	},
+
+	"static_fields" : {
+		"all": ["api_key=%api_key", "method=%method.method", "format=%vars.format"],
+		"auth_only": ["api_sig", "sk"],
+		"unauth_only" : []
+	},
+
+	"error_check_path" : "error",
+	"error_return_path" : "message",
+
+
+	"methods" : {
+		"album.addTags" : {
+			"method" : "album.addTags",
+			"required" : ["artist", "album", "tags"],
+			"optional" : [],
+			"path" : false,
+			"authenticated" : true,
+			"request_type" : "post",
+			"docs_id" : 302
+		},
+
+		"album.getBuyLinks" : {
+			"method": "album.getBuyLinks",
+			"required" : ["artist", "album"],
+			"optional" : ["mbid", "autocorrect", "country"],
+			"validation" : {"autocorrect": "(0|1)"},
+			"path" : "affiliations",
+			"docs_id" : 429
+		},
+		"album.getBuyLinks.mbid" : {
+			"method": "album.getBuyLinks",
+			"required" : ["mbid"],
+			"optional" : ["artist", "album", "autocorrect", "country"],
+			"validation" : {"autocorrect": "(0|1)"},
+			"path" : "affiliations",
+			"docs_id" : 429
+		},		
+
+		"album.getInfo" : {
+			"method" : "album.getInfo",
+			"required" : ["album", "artist"],
+			"optional" : ["mbid", "lang", "autocorrect", "username"],
+			"validation" : [{"autocorrect": "(0|1)"}],
+			"path" : "album",
+			"docs_id" : 290
+		}
+
+	}
+}

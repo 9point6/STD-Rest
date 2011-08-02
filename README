@@ -1,0 +1,32 @@
+The aim of this project is to provide a standard API format in JSON which can then be read by libraries in multiple languages (PHP, Python, Javascript, etc).
+
+Stage one is PHP due to most familiarity and need for me, and creating API sourcefiles for Last.FM, Twitter, Qwerly, and Linked In to ensure that the format is flexible enough.
+
+Why?
+=========
+Currently API's often have either no wrapper libraries or a wrapper library that differs vastly across languages (sometimes for good reason, often just different authors).
+By creating a language-neutral format for defining the capabilities of an API, the hope is to be able to just import that API file using the language implementation of choice (apikit.php, apikit.py, etc) and have a working, familiar wrapper available without hassle.
+
+
+Short-term targets:
+ - Universally readable format for APIs which is flexible enough to allow any RESTful API wrapper to be implemented in it.
+ - Create formats for Last.FM, Twitter, Qwerly, Linked In.
+ - Figure out flexible authentication scheme (OAuth is easy if everyone would just implement it please?).
+
+Medium-term targets:
+ - Implementations in Python, Ruby, Javascript (CoffeeScript).
+ - More API implementations to ensure flexibility.
+
+Long-term targets:
+ - Server and client script-deployment: allow to output a simplified script to langauge of choice which is either a client implementation or the scaffolding for a server implementation.
+ - Global domination.
+
+
+CHANGELOG
+====================
+
+v0.01
+====================
+Initial Last.FM api working on simple test cases.
+No Authentication yet, need to figure out how to allow custom auth schemes.
+The apis/lastfm.json should show you well enough how it works, I'll write a proper schema eventually.
