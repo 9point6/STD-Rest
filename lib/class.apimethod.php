@@ -27,7 +27,7 @@ class APIMethod {
 		if(is_array($required)) {
 			$this->required = $required;
 		}
-		else if(strpos(",", $required)) {
+		else if(strpos($required, ",") !== false) {
 			$this->required = explode(",", $required);
 		}
 		else {
@@ -39,7 +39,7 @@ class APIMethod {
 		if(is_array($optional)) {
 			$this->optional = $optional;
 		}
-		else if(strpos(",", $optional)) {
+		else if(strpos($optional, ",")) {
 			$this->optional = explode(",", $optional);
 		}
 		else {
@@ -51,7 +51,7 @@ class APIMethod {
 		if(is_array($path)) {
 			$this->path = $path;
 		}
-		else if(strpos("/", $path)) {
+		else if(strpos($path, "/")) {
 			$this->path = explode("/", $path);
 		}
 		else if($path) {

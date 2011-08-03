@@ -27,6 +27,11 @@ class APIFactory {
 
 		if(isset($this->methods[$name])) {
 			$this->method = $this->methods[$name];
+		
+			$this->call_hook("pre_call");
+
+			if($this->method->authenticated)
+				$this->call_hook("pre_call_auth");
 
 			$method = $this->form_signature($this->method->get_signature(), $args);
 			$static = $this->form_signature($this->get_static_fields($this->method->authenticated), $this->get_param());
@@ -36,7 +41,8 @@ class APIFactory {
 			# at this stage, we have a fully formed signature and all required fields exist.
 			# however, we need to do validation.
 			foreach($this->method->validation as $key=>$value) {
-				$regex = "/".$value."/i";
+				$regex = get($this->validators, $value, "/".$value."/i");
+
 				if(isset($sig[$key]) && $sig[$key] !== FALSE && !preg_match($regex, $sig[$key])) {
 					throw new Exception("Validation failed on $name > $key, where value = " . $sig[$key]);
 				}
@@ -51,26 +57,51 @@ class APIFactory {
 
 			$this->rest->url = $this->replace_keys($this->url);
 
+			$this->call_hook("pre_execute");
+			if($this->method->authenticated)
+				$this->call_hook("pre_execute_auth");
+			
 			$result = $this->rest->execute();
-			return $result;
+
+			$result = $this->call_hook("post_execute", $result);
+
+			# 0 comes from hook
+			return $result[0];
 		}
 		else {
 			throw new Exception("Call to undefined method `$name`");
 		}
 	}
 
+	function call_hook($hook) {
+		$args = func_get_args();
+		$hook = "hook_" . array_shift($args);
+
+		if($this->authentication && method_exists($this->authentication, $hook))
+			return array(call_user_func_array(array($this->authentication, $hook), $args));
+		else
+			return $args;
+	}
+
 
 	function get_static_fields($authenticated = false) {
-		$base = $this->static_fields->all;
-		$plus = $this->static_fields->{$authenticated ? "auth_only" : "unauth_only"};
+		$base = get($this->static_fields, "all", array());
+		$plus = get($this->static_fields, $authenticated ? "auth_only" : "unauth_only", array());
 		$out = array();
 
 		foreach(array_merge($base, $plus) as $key) {			
 			$keys = $this->parse_default($key, NULL); # setting to null causes them to be required
 
-			foreach($keys as $key=>$val)
-				$out[$key] = $val;
+			foreach($keys as $key=>$val) {
+				if(is_numeric($key)) {
+					$key = $val;
+					$val = NULL;
+				}
+				if(strlen($key))
+					$out[$key] = $val;
+			}
 		}
+
 		return $out;
 	}
 
@@ -91,8 +122,13 @@ class APIFactory {
 		return $keys;
 	}
 
-	function replace_keys($str, $km = "%", $rk = false, $po = false) {
-		preg_match_all("/(%[^".$km."=&,\/]+)/", $str, $args);
+	/*
+	* Str = the string to be replacing in
+	* rk  = return the key of that index within the string once replaced.
+	* po  = the object to be replacing from (parent object)
+	*/
+	function replace_keys($str, $rk = false, $po = false) {
+		preg_match_all("/\{([^{}=&,\/]+)\}/", $str, $args);
 
 		if(!$po) $po = $this;
 
@@ -100,7 +136,7 @@ class APIFactory {
 			if($rk && $i != $rk)
 				continue;
 
-			$k = explode(".", substr($v,strlen($km)));
+			$k = explode(".", $v);
 			$o = $po;
 
 			foreach($k as $kk)
@@ -113,7 +149,7 @@ class APIFactory {
 			if($rk)
 				return $o;
 
-			$str = str_replace($v, $o,  $str);
+			$str = str_replace("{".$v."}", $o,  $str);
 		}
 
 		return $str;
@@ -132,9 +168,19 @@ class APIFactory {
 
 		# assign any unused $args to any unfilled $sig
 		foreach($sig as $key=>$value) {
-			if(!$sig[$key] && count($args)) # if there are unused $args
+
+			if(!$sig[$key] && count($args)) { # if there are unused $args
 				$sig[$key] = array_shift($args);
-			else if($val = $this->get_param($key)) # if there is a param of the correct name
+				continue;
+			}
+
+			if(is_numeric($key)) {
+				unset($sig[$key]);
+				$sig[$value] = NULL;
+				$key = $value;
+			}
+
+			if($val = $this->get_param($key)) # if there is a param of the correct name
 				$sig[$key] = $val;
 			else if($sig[$key] === NULL) # if it is required and is still empty by now
 				throw new Exception("Required field $key not set");
@@ -162,7 +208,11 @@ class APIFactory {
 		if(file_exists($file) == FALSE)
 			throw new Exception("Unable to open file $file");
 
-		if(($json = json_decode(file_get_contents($file))) == FALSE) {
+		$file = file_get_contents($file);
+		# remove comments.
+		$file = preg_replace("/\n.*\/\/.*/im", "", $file);
+
+		if(($json = json_decode($file)) == FALSE) {
 			$errors = array(JSON_ERROR_DEPTH => "JSON_ERROR_DEPTH",
 							JSON_ERROR_STATE_MISMATCH => "JSON_ERROR_STATE_MISMATCH",
 							JSON_ERROR_CTRL_CHAR => "JSON_ERROR_CTRL_CHAR",
@@ -177,22 +227,22 @@ class APIFactory {
 			($this->url     = get($json, "url"    )) == FALSE)
 			throw new Exception("JSON does not conform to APIFactory spec.");
 
+		
+		if($auth = get($json, "authentication"))
+			foreach($auth as $key=>$value)
+				if($this->authentication = $this->authFactory($key, $value)) {
+					$this->call_hook("pre_load");
+					break;
+				}
+
 		$this->vars = get($json, "vars", array());
 
 		$this->docs = get($json, "docs");
 		$this->static_fields = get($json, "static_fields");
+		$this->validators = get($json, "validators", array());
 
 		$this->rest->error_check = get($json, "error_check_path");
-		$this->rest->error_return = get($json, "error_retur_path");
-		
-		if(get($json, "authentication")) {
-			$oauth = get($json->authentication, "oauth");
-
-			if($oauth)
-				$this->authentication = $this->authFactory("oauth", $oauth);
-			
-			// and so on for different auth schemes
-		}
+		$this->rest->error_return = get($json, "error_return_path");
 
 		foreach($methods as $name => $method) {
 			$name 		= get($method, "name", $name);
@@ -205,7 +255,7 @@ class APIFactory {
 
 			$docs = false;
 			if($this->docs && $pattern = get($this->docs, "pattern"))
-				$docs = $this->replace_keys($pattern, "%", false, $method);
+				$docs = $this->replace_keys($pattern, false, $method);
 
 			$m =& $this->add_method($name, $required, $optional, $validation, $path, $auth, $type, $docs);
 
@@ -216,6 +266,8 @@ class APIFactory {
 				}
 			}
 		}
+		$this->call_hook("post_load");
+
 		return $this;
 	}
 
@@ -236,9 +288,16 @@ class APIFactory {
 	}
 
 	private function authFactory($method, $data) {
+		if(!file_exists("lib/class.auth." . $method . ".php"))
+			return false;
+
 		require_once("class.auth." . $method . ".php");
-		$method = ucwords($method);
-		$this->authentication = new $method($data);
+		$method = ucwords($method) . "_auth";
+
+		if(!class_exists($method))
+			return false;
+		
+		return ($this->authentication = new $method($this, $data));
 	}
 }
 

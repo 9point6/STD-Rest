@@ -1,0 +1,132 @@
+{
+	//R Title of the API it implements
+	"service" : "Mobi-cart",
+	//R URL format (without query string) of every API request
+	"url" : "www.mobi-cart.com/api/{method.url}.{vars.format}",
+
+	//O Describes the documentation of this API.
+	"docs" : {
+		//O Typically a URL pointing to the API front page
+		"root" : "http://www.mobi-cart.com/",
+		//R A replacement string which is used to form the method.docs - Typically an URL.
+		"pattern" : "http://www.mobi-cart.com/docs/api/{docs_name}_API.html"
+	},
+
+	//O A list of variables to make available as {vars.###}
+	"vars" : {
+		"format" : "json"
+	},
+
+	//O The authentication class to use. The below would look for "class.auth.oauth.php" :: Oauth_auth
+	// "authentication" : {
+	//	"oauth" : {
+	//		[key : value]*
+	//	}
+	// }
+
+	//O A set of fields that is included in requests.
+	"static_fields" : {
+		//O Fields that are included in all requests.
+		"all": ["api_key={api_key}", "user_name={user_name}"],
+		//O Fields that are only included in authorised requests
+		"auth_only" : [],
+		//O Fields that are only included in unauthorised requests
+		"unauth_only" : []
+	},
+
+	//O Path to check for errors
+	"error_check_path" : "error",
+	//O Path to return if errors are found.
+	"error_return_path" : "message",
+
+	//O A list of validation regular expressions to ease per-method validation setting.
+	"validators" : {
+		"email" : "|^([^@]+)@.*\\.([a-z]+)",
+		"date" : "|^(2[0-9]{3}-[0-1][0-9]-[0-3][0-9]$|",
+		"shipping_carrier" : "|^(fedex|ups|other)$|",
+		"shipping_status"  : "|^(pickedup|intransit|arrived|delivered$|",
+		"order_status" : "|^(pending|cancel|processing|completed)$|",
+		"store_status" : "|^(active|hidden|sold|coming)$|",
+		"url" : "|^(http(s)?://[a-z0-9-]+(.[a-z0-9-]+)*(:[0-9]+)?(/.*)?)?$|i",
+		"id" : "|^[0-9]+$|"
+	},
+
+	//R The method definitons
+	"methods" : {
+		// The key is available as {method.name}.
+		// Technically methods can be empty and still work
+		// if they have no optional/required fields and the
+		// root URL looks for {method.name}.
+		//
+		// Fields:
+		//	required		An array or CSV of required field names. Default = []
+		//	optional		An array or CSV of optional field names. Default = []
+		//	validation		An object (key : regex) to validate fields against. Default = {}
+		//	path 			The path within the result to return. Default = /
+		//	request_type	HTTP request method (GET, POST, DELETE, PUT). Default = GET
+		//	authenticated	A boolean indicating wether this method should trigger authentication hooks.
+		//
+		// The method should also include any keys looked for by the and {method.*} replacement.
+
+		"store.get" : {
+			"url" : "stores",
+			"path" : "store",
+			"docs_name" : "store"
+		},
+
+		"store.get_settings" : {
+			"url" : "store-settings",
+			"required" : ["store_id"],
+			"validation" : {"store_id" : "id"},
+			"path" : "store",
+			"docs_name" : "storeStettings"
+		},
+
+		"store.get_shipping" : {
+			"url" : "store-shipping",
+			"required" : ["store_id"],
+			"validation" : {"store_id" : "id"},
+			"path" : "store",
+			"docs_name" : "storeShipping"
+		},
+
+		"store.get_tax" : {
+			"url" : "store-tax",
+			"required" : ["store_id"],
+			"validation" : {"store_id" : "id"},
+			"path" : "store",
+			"docs_name" : "storeTax"
+		},
+
+		"store.get_countries" : {
+			"url" : "countries",
+			"path" : "countries",
+			"docs_name" : "getCountries"
+		},
+
+		"store.get_states" : {
+			"url" : "states",
+			"required" : ["territory_id"],
+			"validation" : {"territory_id" : "id"},
+			"path" : "states",
+			"docs_name" : "getStates"
+		},
+
+		"store.get_shipping_rate": {
+			"url" : "shipping-rate",
+			"required" : ["store_id", "country_id", "state_id"],
+			"validation" : {"store_id" : "id", "country_id" : "id", "state_id" : "id"},
+			"path" : "Shipping",
+			"docs_name" : "shippingRate"
+		},
+
+		"store.set_shipping_rate" : {
+			"url" : "set-shipping-rate",
+			"request_type" : "post",
+			"required" : "store_id,country_id,state_id,shipping_single,shipping_multiple",
+			"validation" : {"store_id" : "id", "country_id" : "id", "state_id" : "id"},			
+			"path" : "message/message",
+			"docs_name" : "setShippingRate"
+		}
+	}
+}

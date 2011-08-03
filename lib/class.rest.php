@@ -32,7 +32,7 @@ class REST {
 
 	function execute() {
 		# form URL
-		$url = ($this->secure ? "https" : "http") . "://" . $this->url;
+		$url = ($this->secure && false ? "https" : "http") . "://" . $this->url;
 
 		$ch = curl_init($url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -64,6 +64,7 @@ class REST {
 		$this->last_request->url = $url;
 		$this->last_request->params = $this->params;
 		$this->last_request->error = false;
+		$this->last_request->request_type = $this->method;
 
 		$this->last_request->raw = curl_exec($ch);
 		$this->last_request->status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
