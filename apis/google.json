@@ -1,0 +1,52 @@
+{
+	"service" : "Google Custom Search API",
+	"url" : "www.googleapis.com/customsearch/v1",
+
+	"secure" : "always",
+
+	"vars" : {
+		"format" : "json"
+	},
+
+	"static_fields" : {
+		"all": ["key={api_key}", "alt={vars.format}"]
+	},
+
+	"error_check_path" : "error",
+	"error_return_path" : "message",
+
+
+	"validators" : {
+		"lr" : "/^lang_.+$/",
+		"num" : "/^([0-9]|10)$/",
+		"safe" : "/^(high|medium|off)$/",
+		"start" : "/^([0-9]|1[0-9]{1,2})$/",
+		"filter" : "/^(0|1)$/"
+	},
+
+	"methods" : {
+		"search" : {
+			"required" : "q, cx",
+			"optional" : "lr,num,safe,start,filter",
+			"validation" : {
+				"lr" : "lr",
+				"num" : "num",
+				"safe" : "safe",
+				"start" : "start",
+				"filter" : "filter"
+			}
+		},
+
+		"search-cref" : {
+			"required" : "q,cref",
+			"optional" : "lr,num,safe,start,filter",
+			"validation" : {
+				"lr" : "lr",
+				"num" : "num",
+				"safe" : "safe",
+				"start" : "start",
+				"filter" : "filter"
+			}
+		}
+	}
+}

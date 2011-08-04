@@ -32,7 +32,7 @@ class REST {
 
 	function execute() {
 		# form URL
-		$url = ($this->secure && false ? "https" : "http") . "://" . $this->url;
+		$url = ($this->secure ? "https" : "http") . "://" . $this->url;
 
 		$ch = curl_init($url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -115,7 +115,6 @@ class REST {
 
 	function reset() {
 		$this->params = array();
-		$this->secure = false;
 		$this->path = false;
 	}
 }

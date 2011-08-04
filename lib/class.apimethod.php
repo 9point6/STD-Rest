@@ -27,11 +27,14 @@ class APIMethod {
 		if(is_array($required)) {
 			$this->required = $required;
 		}
-		else if(strpos($required, ",") !== false) {
-			$this->required = explode(",", $required);
-		}
 		else {
-			$this->required = array($required);
+			$required = preg_replace("/(, | ,)/", ',', trim($required));
+			if(strpos($required, ",") !== false) {
+				$this->required = explode(",", $required);
+			}
+			else {
+				$this->required = array($required);
+			}
 		}
 	}
 
@@ -39,11 +42,14 @@ class APIMethod {
 		if(is_array($optional)) {
 			$this->optional = $optional;
 		}
-		else if(strpos($optional, ",")) {
-			$this->optional = explode(",", $optional);
-		}
 		else {
-			$this->optional = array($optional);
+			$optional = preg_replace("/(, | ,)/", ',', trim($optional));
+			if(strpos($optional, ",")) {
+				$this->optional = explode(",", $optional);
+			}
+			else {
+				$this->optional = array($optional);
+			}
 		}
 	}
 

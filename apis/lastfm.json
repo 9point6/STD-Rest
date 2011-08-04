@@ -4,7 +4,7 @@
 
 	"docs" : {
 		"root" : "http://www.last.fm/api",
-		"pattern" : "http://www.last.fm/api/show?service=%docs_id"
+		"pattern" : "http://www.last.fm/api/show?service={docs_id}"
 	},
 
 	"authentication" : {
@@ -18,9 +18,8 @@
 	},
 
 	"static_fields" : {
-		"all": ["api_key=%api_key", "method=%method.method", "format=%vars.format"],
-		"auth_only": ["sk"],
-		"unauth_only" : []
+		"all": ["api_key={api_key}", "method={method.method}", "format={vars.format}"],
+		"auth_only": ["sk"]
 	},
 
 	"error_check_path" : "error",

@@ -37,7 +37,7 @@
 	//O Path to check for errors
 	"error_check_path" : "error",
 	//O Path to return if errors are found.
-	"error_return_path" : "message",
+	"error_return_path" : "error/message",
 
 	//O A list of validation regular expressions to ease per-method validation setting.
 	"validators" : {
@@ -127,6 +127,56 @@
 			"validation" : {"store_id" : "id", "country_id" : "id", "state_id" : "id"},			
 			"path" : "message/message",
 			"docs_name" : "setShippingRate"
+		},
+
+		"products.get_all" : {
+			"url" : "store-products",
+			"required" : "store_id",
+			"validation" : {"store_id": "id"},
+			"path" : "products/products",
+			"docs_name" : "storeProducts"
+		},
+
+		"products.get_by_department" : {
+			"url" : "department-products",
+			"required" : "department_id",
+			"validation" : {"department_id" : "id"},
+			"path" : "products/products",
+			"docs_name" : "departmentProducts"
+		},
+
+		"products.get_by_subdepartment" : {
+			"url" : "category-products",
+			"required" : "category_id",
+			"validation" : {"category_id": "id"},
+			"path" : "products/products",
+			"docs_name" : "categoryProducts"
+		},
+
+		"products.get" : {
+			"url" : "product-details",
+			"required" : "product_id",
+			"validation" : {"product_id" : "id"},
+			"path" : "Product",
+			"docs_name" : "productDetails"
+		},
+
+		"products.delete" : {
+			"url" : "delete-product",
+			"request_type" : "delete",
+			"required" : "product_id",
+			"validation" : {"product_id" : "id"},
+			"path" : "message/message",
+			"docs_name" : "deleteProduct"
+		},
+
+		"products.add" : {
+			"url" : "add-product",
+			"request_type" : "post",
+			"required" : "department_id, product_name, f_price",
+			"optional" : "category_id, product_description, status, discount, product_image_url, sale_label, video_url, aggregate_quantity, featured",
+			"path" : "message",
+			"docs_name" : "addProduct"
 		}
 	}
 }

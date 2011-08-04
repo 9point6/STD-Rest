@@ -32,6 +32,11 @@ class APIFactory {
 
 			if($this->method->authenticated)
 				$this->call_hook("pre_call_auth");
+			
+			if(($this->method->authenticated && $this->secure == "auth_only") || $this->secure == "always")
+				$this->rest->secure(true);
+			else
+				$this->rest->secure(false);
 
 			$method = $this->form_signature($this->method->get_signature(), $args);
 			$static = $this->form_signature($this->get_static_fields($this->method->authenticated), $this->get_param());
@@ -46,6 +51,8 @@ class APIFactory {
 				if(isset($sig[$key]) && $sig[$key] !== FALSE && !preg_match($regex, $sig[$key])) {
 					throw new Exception("Validation failed on $name > $key, where value = " . $sig[$key]);
 				}
+				if(isset($sig[$key]) && $sig[$key] === FALSE)
+					unset($sig[$key]);
 			}
 
 			# all required fields exist, all filled fields are validated. nothing left but to do the charleston.
@@ -236,7 +243,7 @@ class APIFactory {
 				}
 
 		$this->vars = get($json, "vars", array());
-
+		$this->secure = get($json, "secure", "never");
 		$this->docs = get($json, "docs");
 		$this->static_fields = get($json, "static_fields");
 		$this->validators = get($json, "validators", array());
