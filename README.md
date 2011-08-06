@@ -112,10 +112,10 @@ In contrast, the same information using STD Rest format:
 ## CHANGELOG
 
 ### v0.05 - 2011-08-06
-1. Changed validation syntax (see mobicart.json). Now to add validation to a field you may do it thusly:
-   a) add to method/validation/[key] = [pattern | validators key]\ (where validators key is a key in @validators)
-   b) add to @validators[key] = {pattern}, where the validators key is the same as the field key
-   c) add to @validators[*] = {pattern, fields: [*,*,key,*,...]} where the fields array (or csv) contains the field key
+1. Changed validation syntax (see apis/mobicart.json). Now to add validation to a field you may do it thusly:
+  * add to method/validation/[key] = [pattern | validators key]\ (where validators key is a key in @validators)
+  * add to @validators[key] = {pattern}, where the validators key is the same as the field key
+  * add to @validators[*] = {pattern, fields: [*,*,key,*,...]} where the fields array (or csv) contains the field key
 2. Completed the Mobicart API source - with the exception of not having tested the DELETE methods it all works.
 
 ### v0.04 - 2011-08-06
