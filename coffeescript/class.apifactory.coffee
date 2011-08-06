@@ -48,10 +48,23 @@ class APIFactory
 		
 		(sig[k] = v for k,v of ssig)
 
-		for key, value of method.validation
-			reg = '/' + @get(@validators, value, value) + '/'
+		for key, value of sig
+			regex = null
+			if @get(method, 'validation') and pattern = @get(method.validation, key)
+				regex = (if @get(@validators, pattern) then @validators[pattern].pattern else pattern)
 
-			if sig[key]? and sig[key] != false and not sig[key].toString().match(reg)
+			if not regex
+				for name, o of @validators
+					if name == key or key in @get(o, 'fields', [])
+						regex = o.pattern
+
+			# ensure regexs are wrapped in /../
+			if regex and regex.substr(0,1) != "/"
+				regex = "/" + regex
+			if regex and regex.substr(-1,1) != "/"
+				regex = regex + "/"
+
+			if sig[key]? and sig[key] != false and regex and not sig[key].toString().match(regex)
 				throw "Validation failed on "+method.name+" > "+key+" where value = "+sig[key]
 			
 			if sig[key]? and sig[key] is false
@@ -256,6 +269,12 @@ class APIFactory
 		@docs = @get(json, 'docs')
 		@static_fields = @get(json, 'static_fields')
 		@validators = @get(json, 'validators', [])
+
+		for key, value of @validators
+			if value.fields? and value.fields.replace?
+				fields = value.fields.replace(/(, | ,)/g, ',').replace(/(^ | $)/g, '')
+				@validators[key].fields = fields.split(",")
+
 
 		@rest.error_check = @get(json, 'error_check_path')
 		@rest.error_return = @get(json, 'error_return_path')

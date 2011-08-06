@@ -45,10 +45,26 @@ class APIFactory {
 
 			# at this stage, we have a fully formed signature and all required fields exist.
 			# however, we need to do validation.
-			foreach($this->method->validation as $key=>$value) {
-				$regex = get($this->validators, $value, "/".$value."/i");
+			foreach($sig as $key=>$value) {
 
-				if(isset($sig[$key]) && $sig[$key] !== FALSE && !preg_match($regex, $sig[$key])) {
+				# allow direct specification of either pattern or validators[key]
+				$regex = null;
+				if(get($this->method, 'validation', false) && $pattern = get($this->method->validation, $key, false)) {
+					$regex = get($this->validators, $pattern, false) ? $this->validators->$pattern->pattern : $pattern;
+				}
+
+				# otherwise try match up validators/*/fields:* to key
+				if($regex === null) {
+					# look through the validators for one that either matches by key or by fields[]
+					# if we wanted to allow multiple regexs to validate on a single field, switch to array here
+					foreach($this->validators as $vk=>$o) {
+						if($vk == $key || in_array($key, get($o, 'fields', array()))) {
+							$regex = $o->pattern;
+						}
+					}
+				}
+
+				if(isset($sig[$key]) && $sig[$key] !== FALSE && $regex && !preg_match($regex, $sig[$key])) {
 					throw new Exception("Validation failed on $name > $key, where value = " . $sig[$key]);
 				}
 				if(isset($sig[$key]) && $sig[$key] === FALSE)
@@ -247,6 +263,16 @@ class APIFactory {
 		$this->docs = get($json, "docs");
 		$this->static_fields = get($json, "static_fields");
 		$this->validators = get($json, "validators", array());
+
+		# split validators by comma if neccessary
+		foreach($this->validators as $key=>$value) {
+			if($fields = get($value, 'fields')) {
+				if(!is_array($fields)) {
+					$fields = preg_replace("/(, | ,)/i", ",", trim($fields));
+					$this->validators->$key->fields = explode(",", $fields);
+				}
+			}
+		}
 
 		$this->rest->error_check = get($json, "error_check_path");
 		$this->rest->error_return = get($json, "error_return_path");

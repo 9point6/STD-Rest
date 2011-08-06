@@ -17,5 +17,8 @@ AFAIK the rest of it functions identically, however I have not tested it to a gr
 
 ## CHANGELOG
 
+### v0.05-0.01 2011-08-06
+1. Brought inline with parent change #1
+
 ### v0.04-0.01 2011-08-06
 1. Initial commit.

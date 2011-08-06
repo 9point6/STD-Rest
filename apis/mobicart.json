@@ -40,14 +40,37 @@
 
 	//O A list of validation regular expressions to ease per-method validation setting.
 	"validators" : {
-		"email" : "|^([^@]+)@.*\\.([a-z]+)",
-		"date" : "|^(2[0-9]{3}-[0-1][0-9]-[0-3][0-9]$|",
-		"shipping_carrier" : "|^(fedex|ups|other)$|",
-		"shipping_status"  : "|^(pickedup|intransit|arrived|delivered$|",
-		"order_status" : "|^(pending|cancel|processing|completed)$|",
-		"store_status" : "|^(active|hidden|sold|coming)$|",
-		"url" : "|^(http(s)?://[a-z0-9-]+(.[a-z0-9-]+)*(:[0-9]+)?(/.*)?)?$|i",
-		"id" : "|^[0-9]+$|"
+		"email" : {
+			//R - the pattern to match against.
+			"pattern": "|^([^@]+)@.*\\.([a-z]+)$|",
+			//O - the fields to match against, implicitly including the parent key (in this case, 'email')
+			"fields" : ["user_name", "s_merchant_paypal_email", "s_buyer_email", "payPalAddress"]
+		},
+		"date" : {
+			"pattern" : "|^(2[0-9]{3}-[0-1][0-9]-[0-3][0-9]$|",
+			"fields" : ["from_date", "to_date", "d_order_date"]
+		},
+		"shipping_carrier" : {
+			"pattern" : "|^(fedex|ups|other)$|"
+		},
+		"shipping_status"  : {
+			"pattern" : "|^(pickedup|intransit|arrived|delivered$|"
+		},
+		"s_status" : {
+			"pattern" : "|^(pending|cancel|processing|completed)$|"
+		},
+		"store_status" : {
+			"pattern" : "|^(active|hidden|sold|coming)$|",
+			"fields" : ["status", "department_status", "category_status"]
+		},
+		"url" : {
+			"pattern" : "|^(http(s)?://[a-z0-9-]+(.[a-z0-9-]+)*(:[0-9]+)?(/.*)?)?$|i",
+			"fields" : ["companyLogoUrl", "companyWebsite", "product_image_url", "video_url", "gallery_image_url"]
+		},
+		"numeric" : {
+			"pattern" : "|^[0-9]a+$|",
+			"fields" : "store_id, territory_id, country_id, state_id, department_id, category_id, parent_category_id, f_price, discount, aggregate_quantity, image_id"
+		}
 	},
 
 	//R The method definitons
@@ -76,7 +99,6 @@
 		"store.get_settings" : {
 			"url" : "store-settings",
 			"required" : ["store_id"],
-			"validation" : {"store_id" : "id"},
 			"path" : "store",
 			"docs_name" : "storeStettings"
 		},
@@ -84,7 +106,6 @@
 		"store.get_shipping" : {
 			"url" : "store-shipping",
 			"required" : ["store_id"],
-			"validation" : {"store_id" : "id"},
 			"path" : "store",
 			"docs_name" : "storeShipping"
 		},
@@ -92,7 +113,6 @@
 		"store.get_tax" : {
 			"url" : "store-tax",
 			"required" : ["store_id"],
-			"validation" : {"store_id" : "id"},
 			"path" : "store",
 			"docs_name" : "storeTax"
 		},
@@ -106,7 +126,6 @@
 		"store.get_states" : {
 			"url" : "states",
 			"required" : ["territory_id"],
-			"validation" : {"territory_id" : "id"},
 			"path" : "states",
 			"docs_name" : "getStates"
 		},
@@ -114,7 +133,6 @@
 		"store.get_shipping_rate": {
 			"url" : "shipping-rate",
 			"required" : ["store_id", "country_id", "state_id"],
-			"validation" : {"store_id" : "id", "country_id" : "id", "state_id" : "id"},
 			"path" : "Shipping",
 			"docs_name" : "shippingRate"
 		},
@@ -123,7 +141,6 @@
 			"url" : "set-shipping-rate",
 			"request_type" : "post",
 			"required" : "store_id,country_id,state_id,shipping_single,shipping_multiple",
-			"validation" : {"store_id" : "id", "country_id" : "id", "state_id" : "id"},			
 			"path" : "message/message",
 			"docs_name" : "setShippingRate"
 		},
@@ -131,7 +148,6 @@
 		"products.get_all" : {
 			"url" : "store-products",
 			"required" : "store_id",
-			"validation" : {"store_id": "id"},
 			"path" : "products/products",
 			"docs_name" : "storeProducts"
 		},
@@ -139,7 +155,6 @@
 		"products.get_by_department" : {
 			"url" : "department-products",
 			"required" : "department_id",
-			"validation" : {"department_id" : "id"},
 			"path" : "products/products",
 			"docs_name" : "departmentProducts"
 		},
@@ -147,7 +162,6 @@
 		"products.get_by_subdepartment" : {
 			"url" : "category-products",
 			"required" : "category_id",
-			"validation" : {"category_id": "id"},
 			"path" : "products/products",
 			"docs_name" : "categoryProducts"
 		},
@@ -155,7 +169,6 @@
 		"products.get" : {
 			"url" : "product-details",
 			"required" : "product_id",
-			"validation" : {"product_id" : "id"},
 			"path" : "Product",
 			"docs_name" : "productDetails"
 		},
@@ -164,7 +177,6 @@
 			"url" : "delete-product",
 			"request_type" : "delete",
 			"required" : "product_id",
-			"validation" : {"product_id" : "id"},
 			"path" : "message/message",
 			"docs_name" : "deleteProduct"
 		},
@@ -176,6 +188,231 @@
 			"optional" : "category_id, product_description, status, discount, product_image_url, sale_label, video_url, aggregate_quantity, featured",
 			"path" : "message",
 			"docs_name" : "addProduct"
+		},
+
+		"products.update" : {
+			"url" : "update-product",
+			"request_type" : "post",
+			"required" : "product_id, product_name, f_price",
+			"optional" : "category_id, product_description, status, discount, product_image_url, sale_label, video_url, aggregate_quantity, featured",
+			"path" : "message",
+			"docs_name" : "updateProduct"
+		},
+
+		"products.add_option" : {
+			"url" : "add-productOption",
+			"request_type" : "post",
+			"required" : "product_id, option_title, option_name",
+			"optional" : "sku_id, option_quantity",
+			"path" : "message",
+			"docs_name" : "addProductOption"
+		},
+
+		"products.update_option" : {
+			"url" : "update-productOption",
+			"request_type" : "post",
+			"required" : "product_option_id, option_title, option_name",
+			"optional" : "sku_id, option_quantity",
+			"path" : "message",
+			"docs_name" : "updateProductOption"
+		},
+
+		"products.add_image" : {
+			"url" : "add-product-image",
+			"request_type" : "post",
+			"required" : "product_id, product_image_url",
+			"path" : "message",
+			"docs_name" : "addProductImage"
+		},
+
+		"products.update_image" : {
+			"url" : "update-product-image",
+			"request_type" : "post",
+			"required" : "product_image_id, product_image_url",
+			"path" : "message",
+			"docs_name" : "updateProductImages"
+		},
+
+		"products.bulk_upload" : {
+			"url" : "products-csv-upload",
+			"request_type" : "post",
+			"required" : "store_id, product_file",
+			"path" : "message",
+			"validation" : {"product_file" : "|^@.+|"},
+			"docs_name" : "bulkUpload"
+		},
+
+		"user.get" : {
+			"url" : "merchant-profile",
+			"path" : "MerchantProfile",
+			"docs_name" : "merchantProfile"
+		},
+
+		"user.update" : {
+			"url" : "update-merchant-profile",
+			"request_type" : "post",
+			"required" : "firstName",
+			"optional" : "lastName, companyLogoUrl, companyWebsite, payPalAddress, companyRegNumber, taxRegNumber",
+			"path" : "message/message",
+			"docs_name" : "updateMerchantProfile"
+		},
+
+		"images.get" : {
+			"url" : "store-gallery-images",
+			"required" : "store_id",
+			"path" : "GalleryImageList/images",
+			"docs_name" : "galleryImagesUnderStore"
+		},
+
+		"images.add" : {
+			"url" : "add-gallery-image",
+			"request_type" : "post",
+			"required" : "store_id, gallery_image_url",
+			"path" : "message/message",
+			"docs_name" : "addGalleryImagesUnderStore"
+		},
+
+		"images.delete" : {
+			"url" : "delete-gallery-image",
+			"request_type" : "delete",
+			"required" : "image_id",
+			"path" : "message/message",
+			"docs_name" : "deleteGalleryImage"
+		},
+
+		"order.add" : {
+			"url" : "add-product-order",
+			"request_type" : "post",
+			"required" : ["user_name", "s_merchant_paypal_email", "s_buyer_name", "s_buyer_email", "i_buyer_phone", 
+						  "s_shipping_street", "s_shipping_city", "s_shipping_state","s_shipping_postal_code",
+						  "s_shipping_country", "s_billing_street", "s_billing_city", "s_billing_state",
+						  "s_billing_postal_code", "s_billing_country", "d_order_date", "s_status"],
+			"path" : "message/message",
+			"docs_name" : "addProductOrder"
+		},
+
+		"order.get_all" : {
+			"url" : "all-orders",
+			"path" : "OrderList/orders",
+			"docs_name" : "allOrders"
+		},
+
+		"order.get" : {
+			"url" : "order-details",
+			"required": "order_id",
+			"path" : "order-details",
+			"docs_name" : "orderDetails"
+		},
+
+		"order.get_by_date" : {
+			"url": "order-by-date",
+			"required" : "from_date,to_date",
+			"path" : "OrderList/orders",
+			"docs_name" : "ordersByDate"
+		},
+
+		"order.get_history" : {
+			"url" : "order-history",
+			"path" : "OrderList/orders",
+			"docs_name" : "orderHistory"
+		},
+
+		"order.add_item" : {
+			"url" : "add-OrderItem",
+			"request_type" : "POST",
+			"required" : "product_id, order_id, amount_quantity",
+			"optional" : "product_option_id",
+			"path" : "message/message",
+			"docs_name" : "addOrderItem"
+		},
+
+		"order.update_item" : {
+			"url" : "update-OrderItem",
+			"request_type" : "post",
+			"required" : "order_item_id, amount, quantity",
+			"path" : "message/message",
+			"docs_name" : "updateOrderItem"
+		},
+
+		"order.get_shipping_status" : {
+			"url" : "shipping-status",
+			"required" : "tracking_number",
+			"path" : "OrderDetails",
+			"docs_name" : "getShippingStatus"
+		},
+
+		"order.add_shipping_status" : {
+			"url" : "add-shipping-status",
+			"request_type" : "post",
+			"required" : "order_id, tracking_number, shipping_carrier, shipping_status",
+			"path" : "message/message",
+			"docs_name" : "addShippingStatus"
+		},
+
+		"order.update_shipping_status" : {
+			"url" : "update-shipping-status",
+			"request_type" : "post",
+			"required" : "tracking_number, shipping_status",
+			"path" : "message/message",
+			"docs_name" : "updateShippingStatus"
+		},
+
+		"department.get" : {
+			"url" : "store-departments",
+			"required" : "store_id",
+			"path" : "DepartmentList/departments",
+			"docs_name" : "departmentsForStore"
+		},
+
+		"department.add" : {
+			"url" : "add-department",
+			"request_type" : "post",
+			"required" : "store_id, department_name",
+			"optional" : "department_status",
+			"path" : "message",
+			"docs_name" : "addDepartmentUnderStore"
+		},
+
+		"department.update" : {
+			"url" : "update-department",
+			"request_type" : "post",
+			"required" : "department_id, department_name",
+			"optional" : "department_status",
+			"path" : "message/message",
+			"docs_name" : "updateDepartmentUnderStore"
+		},
+
+		"department.delete" : {
+			"url" : "delete-department",
+			"request_type" : "delete",
+			"required" : "department_id",
+			"path" : "message/message",
+			"docs_name" : "deleteDepartmentUnderStore"
+		},
+
+		"subdepartment.add" : {
+			"url" : "add-sub-department-nested",
+			"request_type" : "post",
+			"required" : "department_id, parent_category_id, category_name, category_status",
+			"path" : "message",
+			"docs_name" : "addSubDepartmentUnderSubDepartment"
+		},
+
+		"subdepartment.update" : {
+			"url" : "update-sub-department-nested",
+			"request_type" : "post",
+			"required" : "category-id, parent_category_id, category_name",
+			"optional" : "category_status",
+			"path" : "message/message",
+			"docs_name" : "updateSubDepartmentUnderSubDepartment"
+		},
+
+		"subdepartment.delete" : {
+			"url" : "delete-sub-department",
+			"request_type" : "delete",
+			"required" : "category_id",
+			"path" : "message/message",
+			"docs_name" : "deleteSubDepartment"
 		}
 	}
 }
