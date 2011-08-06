@@ -36,6 +36,7 @@ major drawbacks, and they mostly stem from XML and the ideas it espouses.
 It's clearest when illustrated. Google's Custom Search API method in WADL (I think):
 
 <code>
+
     <application xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:yn="urn:yahoo:yn" xmlns:ya="urn:yahoo:api" xmlns="http://research.sun.com/wadl">
       <grammars>
         <include href="SearchResponse.xsd"/>
@@ -67,6 +68,7 @@ It's clearest when illustrated. Google's Custom Search API method in WADL (I thi
 In contrast, the same information using STD Rest format:
 
 <code>
+
     {
       "service" : "Google Custom Search API",
       "url" : "www.googleapis.com/customsearch/v1",
@@ -109,7 +111,7 @@ In contrast, the same information using STD Rest format:
 
 ## CHANGELOG
 
-### v0.04 - 2011-08-05
+### v0.04 - 2011-08-06
 1. Added a CoffeeScript implementation (minus any attempts at authentication). See readme in that dir
 2. Fixed one or two bugs with the PHP implementation which regard to handling & and = in keys.
 
