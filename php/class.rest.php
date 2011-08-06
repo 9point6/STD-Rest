@@ -92,6 +92,8 @@ class REST {
 			return $this->last_request->error;
 		}
 
+		$this->reset();
+
 		# no errors, so resolve the path and return the data.
 		$this->last_request->result = $this->resolve_path($result, $this->path, FALSE);
 		return $this->last_request->result;

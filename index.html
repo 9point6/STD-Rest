@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>STD Rest Coffeescript</title>
+		<script type="text/javascript" src="coffeescript/class.apifactory.js"></script>
+		<script type="text/javascript" src="coffeescript/class.apimethod.js"></script>
+		<script type="text/javascript" src="coffeescript/class.rest.js"></script>
+		<script type="text/javascript">
+		window.onload = (function() {
+		
+			a = new APIFactory();
+
+			a.fromFile('./apis/mobicart.json', function() {
+				a.api_key = "lololol"
+				a.user_name = "richthegeek@gmail.com"
+				a.store.get_tax(function(data) {
+					console.log(data)
+				})
+			})
+		})
+		</script>
+	</head>
+	<body>
+	
+
+
+	</body>
+</html>

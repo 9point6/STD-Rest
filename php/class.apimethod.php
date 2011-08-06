@@ -72,8 +72,8 @@ class APIMethod {
 		$this->authenticated = (bool) $bool;
 	}
 
-	function set_docs($link) {
-		$this->docs = $link;
+	function set_docs($docs) {
+		$this->docs = $docs;
 	}
 
 	function set_request_type($type) {

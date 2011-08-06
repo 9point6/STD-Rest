@@ -6,7 +6,6 @@
 
 	//O Describes the documentation of this API.
 	"docs" : {
-		//O Typically a URL pointing to the API front page
 		"root" : "http://www.mobi-cart.com/",
 		//R A replacement string which is used to form the method.docs - Typically an URL.
 		"pattern" : "http://www.mobi-cart.com/docs/api/{docs_name}_API.html"

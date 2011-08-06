@@ -121,9 +121,9 @@ class APIFactory {
 		$key = $this->replace_keys($key);
 
 		# preg instead of explode.
-		preg_match_all("/&?([^=]+)=([^=]+)/", $key, $args);
-		foreach($args[1] as $i=>$v) {
-			$keys[$v] = $args[2][$i];
+		foreach(explode("&", $key) as $i=>$v) {
+			$k = explode("=", $v);
+			$keys[$k[0]] = $k[1];
 		}
 
 		return $keys;
