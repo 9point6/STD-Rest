@@ -3,11 +3,6 @@ class Rest
 		@url = false
 		@reset()
 
-	reset: () ->
-		@params = {}
-		@path = false
-		@method = "GET"
-
 	set_method: (type) ->
 		type = type.toUpperCase()
 		if type in ["GET", "POST", "DELETE", "PUT"]
@@ -97,8 +92,6 @@ class Rest
 				content_type: type
 			}
 
-			self.path = "aye/bee"
-
 			if self.error_check? and e1 = self.resolve_path(result, self.error_check, true)
 				if not(self.error_return? and e2 = self.resolve_path(result, self.error_return, true))
 					e2 = e1
@@ -111,6 +104,8 @@ class Rest
 			self.last_request.result = self.resolve_path(result, self.path, false)
 			if callback
 				callback(self.last_request.result)
+
+			@reset()
 			return self.last_request.result
 		)
 
@@ -128,5 +123,10 @@ class Rest
 				return (if fatal then false else o)
 		
 		return o
+
+	reset: () ->
+		@params = {}
+		@path = false
+		@method = "GET"
 
 this.Rest = Rest

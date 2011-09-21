@@ -2,6 +2,8 @@ class APIFactory
 	constructor: () ->
 		@params = {}
 		@methods = {}
+		@hooked = {}
+		
 		@rest = new Rest();
 	
 	# lololol - gets a value or returns a default
@@ -35,8 +37,8 @@ class APIFactory
 				callback = data.splice(i,1)[0]
 				break
 		
-		@call_hook("pre_call")
-		if method.authenticated then @call_hook("pre_call_auth")
+		@call_hook("pre_call", true)
+		if method.authenticated then @call_hook("pre_call_auth", true)
 
 		if (method.authenticated and @secure == 'auth_only') or @secure == 'always'
 			@rest.secure(true)
@@ -69,39 +71,51 @@ class APIFactory
 			
 			if sig[key]? and sig[key] is false
 				delete sig[key]
+			else
+				@set_param(key, value)
 
 		@rest.set_method(method.request_type)
 		@rest.add_param(sig)
 		@rest.set_path(method.path)
+
 		@rest.url = @replace_keys(@url)
 
-		@call_hook("pre_execute")
-		if method.authenticated then @call_hook("pre_execute_auth")
+		@call_hook("pre_execute", true)
+		if method.authenticated then @call_hook("pre_execute_auth", true)
 	
 		self = @
 		@rest.execute(null, (data) ->
-			data = self.call_hook("post_execute", data)[0]
-			if callback
-				callback(data)
+			data = self.call_hook("post_execute", true, data)[0]
+			if callback then callback(data)
 			return data
 		)
 	
-	call_hook: (hook) ->
-		arguments = (v for i,v of arguments when i > 0)
+	call_hook: (hook, extra = false) ->
+		args = (v for i,v of arguments when i > 0)
+		targs = (v for i,v of arguments when i > 0)
+		
+		hook = args.shift()
+		extra = args.shift()
+
+		if extra and @method
+			targs[0] += '_' + @method.name.replace(/[^a-z]+/i, '_', @method.name)
+			targs[1] = false
+			@call_hook(targs)
+
 		hook = "hook_" + hook
 
-		if @authentication and @authentication[hook]?
-			return @authentication[hook].apply(@, arguments)
-		else
-			return arguments
+		for i, obj of @hooked
+			if obj[hook]?
+				args = obj[hook](args)
+		
+		return args
 
 	get_static_fields: (auth = false) ->
 		base = @get(@static_fields, 'all', [])
 		plus = @get(@static_fields, (if auth then 'auth_only' else 'unauth_only'), [])
-		base.concat(plus)
-
 		out = {}
 
+		base.concat(plus)
 		for i, key of base
 			keys = @parse_default(key, null)
 			for key, val of keys
@@ -147,6 +161,9 @@ class APIFactory
 			if typeof o == 'object'
 				throw "Replacing keys on "+v+" pointed to an object/array instead of a literal"
 			
+			if o.match('{') < 0
+				o = @replace_keys(o, false, po)
+
 			if rk then return o
 
 			str = str.replace(v, o)
@@ -158,7 +175,7 @@ class APIFactory
 			args = []
 
 		for key, value of args
-			if sig[key]?
+			if typeof sig[key] != 'undefined'
 				sig[key] = value
 				delete args[key]
 
