@@ -8,6 +8,7 @@ class APIFactory {
 	function APIFactory() {
 		$this->params = array();
 		$this->methods = array();
+		$this->hooked = array();
 
 		$this->rest = new REST();
 	}
@@ -18,6 +19,7 @@ class APIFactory {
 		}
 		return $this->$name;
 	}
+
 	function __call($name, $args) {
 		$name = preg_replace("/([^a-z]+)/i", "_", $name);
 
@@ -28,10 +30,10 @@ class APIFactory {
 		if(isset($this->methods[$name])) {
 			$this->method = $this->methods[$name];
 		
-			$this->call_hook("pre_call");
+			$this->call_hook("pre_call", true);
 
 			if($this->method->authenticated)
-				$this->call_hook("pre_call_auth");
+				$this->call_hook("pre_call_auth", true);
 			
 			if(($this->method->authenticated && $this->secure == "auth_only") || $this->secure == "always")
 				$this->rest->secure(true);
@@ -40,8 +42,8 @@ class APIFactory {
 
 			$method = $this->form_signature($this->method->get_signature(), $args);
 			$static = $this->form_signature($this->get_static_fields($this->method->authenticated), $this->get_param());
-			
-			$sig = array_merge($static, $method); # this order to cause method to overwrite static in the event that this would ever happen.
+
+			$sig = array_merge($static, $method);# this order to cause method to overwrite static in the event that this would ever happen.
 
 			# at this stage, we have a fully formed signature and all required fields exist.
 			# however, we need to do validation.
@@ -67,26 +69,29 @@ class APIFactory {
 				if(isset($sig[$key]) && $sig[$key] !== FALSE && $regex && !preg_match($regex, $sig[$key])) {
 					throw new Exception("Validation failed on $name > $key, where value = " . $sig[$key]);
 				}
-				if(isset($sig[$key]) && $sig[$key] === FALSE)
+				if(isset($sig[$key]) && $sig[$key] === FALSE) {
 					unset($sig[$key]);
+				}
+				else {
+					$this->set_param($key, $value);
+				}
 			}
 
-			# all required fields exist, all filled fields are validated. nothing left but to do the charleston.
-			$type = $this->method->request_type;
 
-			$this->rest->set_method($type);
+			# all required fields exist, all filled fields are validated. nothing left but to do the charleston.
+			$this->rest->set_method($this->method->request_type);
 			$this->rest->add_param($sig);
 			$this->rest->set_path($this->method->path);
 
 			$this->rest->url = $this->replace_keys($this->url);
 
-			$this->call_hook("pre_execute");
+			$this->call_hook("pre_execute", true);
 			if($this->method->authenticated)
-				$this->call_hook("pre_execute_auth");
+				$this->call_hook("pre_execute_auth", true);
 			
 			$result = $this->rest->execute();
 
-			$result = $this->call_hook("post_execute", $result);
+			$result = $this->call_hook("post_execute", true, $result);
 
 			# 0 comes from hook
 			return $result[0];
@@ -96,14 +101,28 @@ class APIFactory {
 		}
 	}
 
-	function call_hook($hook) {
+	function call_hook($hook, $extra = false) {
 		$args = func_get_args();
-		$hook = "hook_" . array_shift($args);
+		$targs = func_get_args();
 
-		if($this->authentication && method_exists($this->authentication, $hook))
-			return array(call_user_func_array(array($this->authentication, $hook), $args));
-		else
-			return $args;
+		$hook = array_shift($args);
+		$extra = array_shift($args);
+
+		if($extra && $this->method) {
+			$targs[0] .= "_" . preg_replace('/[^a-z]+/i', '_', $this->method->name);
+			$targs[1] = false;
+			call_user_func_array(array($this, "call_hook"), $targs);
+		}
+
+		$hook = "hook_" . $hook;
+
+		foreach($this->hooked as $obj) {
+			if(method_exists($obj, $hook)) {
+				$args = array(call_user_func_array(array($obj, $hook), $args));
+			}
+		}
+
+		return $args;
 	}
 
 
@@ -162,12 +181,20 @@ class APIFactory {
 			$k = explode(".", $v);
 			$o = $po;
 
-			foreach($k as $kk)
-				if(isset($o->$kk))
+			foreach($k as $kk) {
+				if(is_object($o) && isset($o->$kk))
 					$o = $o->$kk;
+				else if(is_array($o) && isset($o[$kk]))
+					$o = $o[$kk];
+			}
 			
-			if(is_array($o) || is_object($o))
+			if(is_array($o) || is_object($o)) {
 				throw new Exception("Replacing keys on $v pointed to an object/array instead of literal");
+			}
+
+			if(strpos($o, '{') !== false) {
+				$o = $this->replace_keys($o, false, $po);
+			}
 
 			if($rk)
 				return $o;
@@ -183,7 +210,7 @@ class APIFactory {
 
 		# if the $args was an object/associative array
 		foreach($args as $key=>$value) {
-			if(isset($sig[$key])) {
+			if(array_key_exists($key, $sig)) {
 				$sig[$key] = $value;
 				unset($args[$key]); # remove it from the list to stop it carrying through
 			}
@@ -253,7 +280,8 @@ class APIFactory {
 		
 		if($auth = get($json, "authentication"))
 			foreach($auth as $key=>$value)
-				if($this->authentication = $this->authFactory($key, $value)) {
+				if($auth = $this->authFactory($key, $value)) {
+					$this->hooked[] = $auth;
 					$this->call_hook("pre_load");
 					break;
 				}

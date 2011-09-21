@@ -78,6 +78,7 @@ In contrast, the same information using STD Rest format:
       },
 
       "error_check_path" : "error",
+      "error_return_path" : "ga:error",
 
       "validators" : {
         "lr" : "/^lang_.+$/",
@@ -91,19 +92,13 @@ In contrast, the same information using STD Rest format:
         "search" : {
           "required" : "q, cx",
           "optional" : "lr,num,safe,start,filter",
-          "validation" : {
-            "lr" : "lr",
-            "num" : "num",
-            "safe" : "safe",
-            "start" : "start",
-            "filter" : "filter"
-          }
+          "path" : "ga:items"
         }
       }
     }
 </code>
 
-**Pros**: The code is shorter and more of it is dedicated to the actual API description (less repetition), the validation is stricter (saves on wasted queries), and various things that are static in the WADL code can be made (using /vars) configurable, such as the "alt" format flag.
+**Pros**: The code is shorter and more of it is dedicated to the actual API description (less repetition), the validation is stricter/more precise (saves on wasted queries), and various things that are static in the WADL code can be made (using /vars) configurable, such as the "alt" format flag.
 
 **Cons**: Less descriptive without reference - "query_variable" is obviously a query variable, whereas /methods/\*/required/\* is not as blatant. Doesn't provide any validation on the data that is returned.
 
@@ -111,11 +106,17 @@ In contrast, the same information using STD Rest format:
 
 ## CHANGELOG
 
+### v0.1 - 2011-09-21
+1. Implemented the remainder of the Mobicart API (as of Sept 1st)
+2. Implemented about 50% of the Shopify API
+3. Redone the hooks system for a broader implementation - see php/hooks.shopify.php for example
+4. Various bug fixes and minor improvements
+
 ### v0.05 - 2011-08-06
 1. Changed validation syntax (see apis/mobicart.json). Now to add validation to a field you may do it thusly:
-  * add to method/validation/[key] = [pattern | validators key]\ (where validators key is a key in @validators)
+  * add to method/validation/[key] = [pattern | validators key] (where validators key is a key in @validators)
   * add to @validators[key] = {pattern}, where the validators key is the same as the field key
-  * add to @validators[*] = {pattern, fields: [*,*,key,*,...]} where the fields array (or csv) contains the field key
+  * add to @validators[\*] = {pattern, fields: [\*,\*,key,\*,...]} where the fields array (or csv) contains the field key
 2. Completed the Mobicart API source - with the exception of not having tested the DELETE methods it all works.
 
 ### v0.04 - 2011-08-06
@@ -144,3 +145,7 @@ In contrast, the same information using STD Rest format:
 1. Initial Last.FM api working on simple test cases.
 2. No Authentication yet, need to figure out how to allow custom auth schemes.
 3. The apis/lastfm.json should show you well enough how it works, I'll write a proper schema eventually.
+
+## License
+
+GPL - change it however you want, distribute it, whatever. Just don't sell it (although commercial implementors are welcome) or attempt to pass it off as your own.

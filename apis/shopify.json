@@ -1,0 +1,552 @@
+{
+	"service" : "Shopify",
+	"url" : "{api_key}:{password}@{shop_url}.myshopify.com/admin/{method.url}.{vars.format}",
+
+	"secure" : "always",
+
+	"docs" : {
+		"root" : "api.shopify.com",
+		"pattern" : "api.shopify.com/api/{docs_id}"
+	},
+
+	"vars" : {
+		"format" : "json"
+	},
+
+	"methods": {
+		"articles" : {
+			"url" : "blogs/{params.blog_id}/articles",
+			"path" : "articles",
+			"required" : "blog_id",
+			"optional" : "limit,page,since_id,created_at_min,created_at_max,updated_at_min,updated_at_max,published_at_min,published_at_max,published_status",
+			"docs_id" : "article.html"
+		},
+
+			"articles/count" : {
+				"url" : "blogs/{params.blog_id}/articles/count",
+				"path" : "count",
+				"required" : "blog_id",
+				"optional" : "created_at_min,created_at_max,updated_at_min,updated_at_max,published_at_min,published_at_max,published_status",
+				"docs_id" : "article.html#count"
+			},
+
+			"articles/show" : {
+				"url" : "blogs/{params.blog_id}/articles/{params.id}",
+				"path" : "article",
+				"required" : "blog_id,id",
+				"docs_id" : "article.html#show"
+			},
+
+			"articles/create" : {
+				"url" : "blogs/{params.blog_id}/articles",
+				"path" : "article",
+				"required" : "blog_id,body_html,author,title",
+				"optional" : "created_at,updated_at,summary_html,tags,published_at",
+				"request_type" : "post",
+				"docs_id" : "article.html#create"
+			},
+
+			"articles/update": {
+				"url" : "blogs/{params.blog_id}/articles/{params.id}",
+				"path" : "article",
+				"required" : "blog_id,id",
+				"optional" : "created_at,body_html,title,author,updated_at,summary_html,tags,author,published_at",
+				"request_type" : "put",
+				"docs_id" : "article.html#update"
+			},
+
+			"articles/delete" : {
+				"url" : "blogs/{params.blog_id}/articles/{params.id}",
+				"path" : false,
+				"required" : "blog_id,id",
+				"request_type" : "delete",
+				"docs_id" : "article.html#delete"
+			},
+
+		"assets" : {
+			"url" : "themes/{params.theme_id}/assets",
+			"path" : "assets",
+			"required" : "theme_id",
+			"docs_id" : "asset.html"
+		},
+
+			"assets/get" : {
+				"url" : "themes/{params.theme_id}/assets",
+				"path" : "asset",
+				"required" : "theme_id,asset[key]",
+				"docs_id" : "asset.html#show"
+			},
+
+			"assets/save" : {
+				"url" : "themes/{params.theme_id}/assets",
+				"path" : false,
+				"required" : "theme_id,key",
+				"optional" : "value,source_key,attachment,src",
+				"request_type" : "PUT",
+				"docs_id" : "asset.html#update"	
+			},
+
+			"assets/delete" : {
+				"url" : "themes/{params.theme_id}/assets",
+				"path" : false,
+				"required" : "theme_id,asset[key]",
+				"request_type" : "DELETE",
+				"docs_id" : "asset.html#destroy"
+			},
+
+		"blogs" : {
+			"url" : "blogs",
+			"path" : "blogs",
+			"optional" : "since_id",
+			"docs_id" : "blog.html"
+		},
+			
+			"blogs/count" : {
+				"url" : "blogs/count",
+				"path" : "count",
+				"docs_id" : "blog.html#count"
+			},
+
+			"blogs/get" : {
+				"url" : "blogs/{params.id}",
+				"path" : "blog",
+				"required" : "id",
+				"docs_id" : "blog.html#show"
+			},
+
+			"blogs/create" : {
+				"url" : "blogs",
+				"path" : "blog",
+				"required" : "title",
+				"request_type" : "POST",
+				"docs_id" : "blog.html#create"
+			},
+
+			"blogs/update" : {
+				"url" : "blogs/{params.id}",
+				"path" : "blog",
+				"required" : "id",
+				"optional" : "handle,title,template_suffix,feedburner_location,feedburner,commentable",
+				"request_type" : "PUT",
+				"docs_id" : "blog.html#update"
+			},
+
+			"blogs/delete" : {
+				"url" : "blogs/{params.id}",
+				"path" : "blog",
+				"required" : "id",
+				"request_type" : "DELETE",
+				"docs_id" : "blog.html#destroy"
+			},
+
+		"collections" : {
+			"url" : "collects",
+			"path" : "collects",
+			"docs_id" : "collect.html#index"
+		},
+
+			"collections/count" : {
+				"url" : "collects/count",
+				"path" : "count",
+				"optional" : "collection_id,product_id",
+				"docs_id" : "collect.html#count"
+			},
+
+			"collections/get" : {
+				"url" : "collects/{params.id}",
+				"path" : "collect",
+				"required" : "id",
+				"docs_id" : "collect.html#show"
+			},
+
+			"collections/create" : {
+				"url" : "collects",
+				"path" : "collect",
+				"required" : "product_id,collection_id",
+				"request_type" : "POST",
+				"docs_id" : "collect.html#create"
+			},
+
+			"collections/delete" : {
+				"url" : "collects/{params.id}",
+				"path" : false,
+				"required" : "id",
+				"request_type" : "DELETE",
+				"docs_id" : "collect.html#destroy"
+			},
+
+		"comments" : {
+			"url" : "comments",
+			"path": "comments",
+			"optional" : "blog_id,article_id,limit,page,since_id,created_at_min,created_at_max,updated_at_min,updated_at_max,published_at_min,published_at_max,published_status,status",
+			"docs_id" : "comment.html#index"
+		},
+		
+			"comments/count" : {
+				"url" : "comments/count",
+				"path" : "count",
+				"optional" : "blog_id,article_id,created_at_min,created_at_max,updated_at_min,updated_at_max,published_at_min,published_at_max,published_status,status",
+				"docs_id" : "comment.html#count"
+			},
+
+			"comments/get" : {
+				"url" : "comments/{params.id}",
+				"path" : "comment",
+				"required" : "id",
+				"docs_id" : "comment.html#show"
+			},
+
+			"comments/create" : {
+				"url" : "comments",
+				"path" : "comment",
+				"required" : "body,author,blog_id,article,email",
+				"request_type" : "POST",
+				"docs_id" : "comment.html#create"
+			},
+
+			"comments/update" : {
+				"url" : "comments/{params.id}",
+				"path" : "comment",
+				"required" : "id",
+				"request_type" : "PUT",
+				"docs_id" : "comment.html#update"
+			},
+
+			"comments/spam" : {
+				"url" : "comments/{params.id}/spam",
+				"path" : "comment",
+				"required" : "id",
+				"request_type" : "POST",
+				"docs_id" : "comment.html#spam"
+			},
+
+			"comments/not_spam" : {
+				"url" : "comments/{params.id}/not_spam",
+				"path" : "comment",
+				"required" : "id",
+				"request_type" : "POST",
+				"docs_id" : "comment.html#not_spam"
+			},
+
+			"comments/approve" : {
+				"url" : "comments/{params.id}/approve",
+				"path" : "comment",
+				"required" : "id",
+				"request_type" : "POST",
+				"docs_id" : "comment.html#approve"
+			},
+
+			"comments/delete" : {
+				"url" : "comments/{params.id}/delete",
+				"path" : "comment",
+				"required" : "id",
+				"request_type" : "POST",
+				"docs_id" : "comment.html#delete"
+			},
+			
+		"countries" : {
+			"url" : "countries",
+			"path" : "countries",
+			"optional" : "since_id",
+			"docs_id" : "country.html"
+		},
+			
+			"countries/count" : {
+				"url" : "countries/count",
+				"path" : "count",
+				"docs_id" : "country.html#count"
+			},
+
+			"countries/get" : {
+				"url" : "countries/{params.id}",
+				"path" : "country",
+				"required" : "id",
+				"docs_id" : "country.html#show"
+			},
+
+			"countries/create" : {
+				"url" : "countries",
+				"path" : "country",
+				"required" : "code",
+				"optional" : "tax",
+				"request_type" : "POST",
+				"docs_id" : "country.html#create"
+			},
+
+			"countries/update" : {
+				"url" : "countries/{params.id}",
+				"path" : "country",
+				"required" : "id",
+				"optional" : "tax",
+				"request_type" : "PUT",
+				"docs_id" : "country.html#update"
+			},
+
+			"countries/delete" : {
+				"url" : "countries/{params.id}",
+				"path" : false,
+				"required" : "id",
+				"request_type" : "DELETE",
+				"docs_id" : "country.html#destroy"
+			},
+
+		"custom_collections" : {
+			"url" : "custom_collections",
+			"path" : "custom_collections",
+			"optional" : "limit,page,since_id,product_id,updated_at_min,update_at_max,published_at_min,published_at_max,published_status",
+			"docs_id" : "customcollection.html#index"
+		},
+
+			"custom_collections/count" : {
+				"url" : "custom_collections/count",
+				"path" : "count",
+				"optional" : "title,product_id,updated_at_min,updated_at_max,published_at_min,published_at_max,published_status",
+				"docs_id" : "customcollection.html#count"
+			},
+
+			"custom_collections/get" : {
+				"url" : "custom_collections/{params.id}",
+				"path" : "custom_collection",
+				"required" : "id",
+				"docs_id" : "customcollection.html#show"
+			},
+
+			"custom_collections/create" : {
+				"url" : "custom_collections",
+				"path" : "custom_collection",
+				"required" : "title",
+				"optional" : "handle,body_html,template_suffix,sort_order,published",
+				"request_type" : "POST",
+				"docs_id" : "customcollection.html#create"
+			},
+
+			"custom_collections/update" : {
+				"url" : "custom_collections/{params.id}",
+				"path" : "custom_collection",
+				"required" : "id",
+				"optional" : "handle,body_html,title,template_suffix,sort_order,published",
+				"request_type" : "PUT",
+				"docs_id" : "customcollection.html#update"
+			},
+
+			"custom_collections/delete" : {
+				"url" : "custom_collections/{params.id}",
+				"path" : false,
+				"required" : "id",
+				"request_type" : "DELETE",
+				"docs_id" : "customcollection.html#destroy"
+			},
+
+		"customers" : {
+			"url" : "customers",
+			"path" : "customers",
+			"optional" : "since_id",
+			"docs_id" : "customers.html#index"
+		},
+			"customers/search" : {
+				"url" : "customers/search",
+				"path" : "customers",
+				"optional" : "order,page,page_size,q,f",
+				"docs_id" : "customers.html#search"
+			},
+
+			"customers/get" : {
+				"url": "customers/{params.id}",
+				"path" : "customer",
+				"required" : "id",
+				"docs_id" : "customers.html#show"
+			},
+
+			"customers/create" : {
+				"url" : "customers",
+				"path" : "customer",
+				"optional" : "first_name,last_name,email,address_first_name,address_last_name,company,address1,address2,city,zip,country,country_code,province,province_code,phone,note,tags",
+				"request_type" : "POST",
+				"docs_id" : "customers.html#create"
+			},
+
+			"customers/update": { 
+				"url" : "customers/{params.id}",
+				"path" : "customer",
+				"required" : "id",
+				"optional" : "first_name,last_name,email,address_first_name,address_last_name,company,address1,address2,city,zip,country,country_code,province,province_code,phone,note,tags",
+				"request_type" : "PUT",
+				"docs_id" : "customers.html#update"
+			},
+
+			"customers/delete" : {
+				"url" : "customers/{params.id}",
+				"path" : false,
+				"required" : "id",
+				"request_type" : "DELETE",
+				"docs_id" : "customers.html#destroy"
+			},
+
+		"customer_groups" : {
+			"url" : "customer_groups",
+			"path" : "customer_groups",
+			"optional" : "page,page_size,since_id",
+			"docs_id" : "customergroup.html#index"
+		},
+			"customer_groups/get" : {
+				"url" : "customer_groups/{params.id}",
+				"path" : "customer_group",
+				"required" : "id",
+				"docs_id" : "customergroup.html#show"
+			},
+
+			"customer_groups/customers" : {
+				"url" : "customer_groups/{params.id}/customers",
+				"path" : "customers",
+				"required" : "id",
+				"docs_id" : "customergroup.html#other"
+			},
+
+			"customer_groups/create" : {
+				"url" : "customer_groups",
+				"path" : "customer_group",
+				"required" : "name,query",
+				"request_type" : "POST",
+				"docs_id" : "customergroup.html#create"
+			},
+
+			"customer_groups/update" : {
+				"url" : "customer_groups/{params.id}",
+				"path" : "customer_group",
+				"required" : "id",
+				"optional" : "name,query",
+				"request_type" : "PUT",
+				"docs_id" : "customergroup.html#update"
+			},
+
+			"customer_groups/delete" : {
+				"url" : "customer_groups/{params.id}",
+				"path": false,
+				"required" : "id",
+				"request_type" : "DELETE",
+				"docs_id" : "customergroup.html#delete"
+			},
+
+		"metafields" : {
+			"url" : "metafields",
+			"path" : "metafields",
+			"optional" : "limit,since_id,created_at_min,created_at_max,updated_at_min,updated_at_max,namespace,key,value_type",
+			"docs_id" : "metafields.html#index"
+		},
+		"products/metafields" : {
+			"url" : "products/{params.product_id}/metafields",
+			"path" : "metafields",
+			"required" : "product_id",
+			"docs_id" : "metafields.html#index"
+		},
+
+
+			"metafields/get" : {
+				"url" : "metafields/{params.id}",
+				"path" : "metafield",
+				"required" : "id",
+				"docs_id" : "metafields.html#show"
+			},
+			"products/metafields/get" : {
+				"url" : "products/{params.product_id}/metafields/{params.id}",
+				"path" : "metafield",
+				"required" : "product_id,id",
+				"docs_id" : "metafields.html#show"
+			},
+
+
+			"metafields/create" : {
+				"url" : "metafields",
+				"path" : "metafield",
+				"optional" : "namespace,key,value,value_type",
+				"request_type" : "POST",
+				"docs_id" : "metafields.html#create"
+			},
+			"products/metafields/create" : {
+				"url" : "products/{params.product_id}/metafields",
+				"path" : "metafield",
+				"required" : "product_id",
+				"optional" : "namespace,key,value,value_type",
+				"request_type" : "POST",
+				"docs_id" : "metafields.html#create"
+			},
+
+
+			"metafields/update" : {
+				"url" : "metafields/{params.id}",
+				"path" : "metafield",
+				"required" : "id",
+				"optional" : "namespace,key,value,value_type",
+				"request_type" : "PUT",
+				"docs_id" : "metafields.html#update"
+			},
+			"products/metafields/update" : {
+				"url" : "products/{params.product_id}/metafields/{params.id}",
+				"path" : "metafield",
+				"required" : "product_id,id",
+				"optional" : "namespace,key,value,value_type",
+				"request_type" : "PUT",
+				"docs_id" : "metafields.html#update"
+			},
+
+
+			"metafields/delete" : {
+				"url" : "metafields/{params.id}",
+				"path" : false,
+				"required" : "id",
+				"request_type" : "DELETE",
+				"docs_id" : "metafields.html#destroy"
+			},
+			"products/metafields/delete" : {
+				"url" : "products/{params.product_id}/metafields/{params.id}",
+				"path" : false,
+				"required" : "product_id,id",
+				"request_type" : "DELETE",
+				"docs_id" : "metafields.html#destroy"
+			},
+			
+
+		"shop" : {
+			"url" : "shop",
+			"path" : "shop",
+			"docs_id" : "shop.html"
+		},
+
+		"themes" : {
+			"url" : "themes",
+			"path" : "themes",
+			"docs_id" : "themes.html"
+		},
+
+			"themes/get" : {
+				"url" : "themes/{params.id}",
+				"path" : "theme",
+				"required" : "id",
+				"docs_id" : "themes.html#show"
+			},
+
+			"themes/create" : {
+				"url" : "themes",
+				"path" : "theme",
+				"required" : "name,role,src",
+				"request_type" : "POST",
+				"docs_id" : "themes.html#create"
+			},
+
+			"themes/update" : {
+				"url" : "themes/{params.id}",
+				"path" : "theme",
+				"required" : "id",
+				"optional" : "name,role",
+				"request_type" : "PUT",
+				"docs_id" : "themes.html#update"	
+			},
+
+			"themes/delete" : {
+				"url" : "themes/{params.id}",
+				"required" : "id",
+				"request_type" : "DELETE",
+				"docs_id" : "themes.html#delete"	
+			}
+	}
+}

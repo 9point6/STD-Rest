@@ -5,6 +5,8 @@ class REST {
 	function REST() {
 		$this->url = false;
 		$this->reset();
+
+		$this->copts = array();
 	}
 
 	function set_method($type) {
@@ -38,26 +40,38 @@ class REST {
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($ch, CURLOPT_HEADER, 0);
 
-
 		switch ($this->method) {
 			case "POST":
 				curl_setopt($ch, CURLOPT_POST, TRUE);
 				curl_setopt($ch, CURLOPT_POSTFIELDS, $this->params);
 				break;
 			case "PUT":
+				$size = strlen(is_array($this->params) ? http_build_query($this->params) : $this->params);
+
 				curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
 				curl_setopt($ch, CURLOPT_POSTFIELDS, $this->params);
-				curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-length: ' . http_build_query($this->params)));
+				curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-length: ' . $size));
 				break;
 			case "DELETE":
+				if(!is_string($this->params)) {
+					$this->params = http_build_query($this->params);
+				}
+
 				curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
 				curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-				curl_setopt($ch, CURLOPT_URL, $this->url . '?' . http_build_query($this->params));
+				curl_setopt($ch, CURLOPT_URL, $this->url . '?' . $this->params);
 				break;
 			case "GET":
 			default:
-				curl_setopt($ch, CURLOPT_URL, $url . '?' . http_build_query($this->params));
+				if(!is_string($this->params)) {
+					$this->params = http_build_query($this->params);
+				}
+				curl_setopt($ch, CURLOPT_URL, $url . '?' . $this->params);
 				break;
+		}
+
+		foreach($this->copts as $key=>$value) {
+			curl_setopt($ch, $key, $value);
 		}
 
 		$this->last_request = new stdClass;
@@ -71,17 +85,21 @@ class REST {
 		$this->last_request->content_type = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
 		$this->last_request->content_length = curl_getinfo($ch, CURLINFO_CONTENT_LENGTH_DOWNLOAD);
 
+		// var_dump($this->last_request->raw);
+
 		# various methods for decoding.
 		if($result = json_decode($this->last_request->raw)) {
 			# json, woo
 		}
-		else if($result = simplexml_load_string($this->last_request->raw)) {
+		else if($result = @simplexml_load_string($this->last_request->raw)) {
 			# xml, woo-ish... reliance on simplexml?
 		}
 		else {
 			# default case is string. return that fucker.
 			return $this->last_request->raw;
 		}
+
+		// print_r($result);
 
 		# check for errors.
 		if($this->error_check && $err1 = $this->resolve_path($result, $this->error_check, TRUE)) {
@@ -91,11 +109,12 @@ class REST {
 			$this->last_request->error = $err2;
 			return $this->last_request->error;
 		}
+		# no errors, so resolve the path and return the data.
+		$this->last_request->result = $this->resolve_path($result, $this->path, FALSE);
 
 		$this->reset();
 
-		# no errors, so resolve the path and return the data.
-		$this->last_request->result = $this->resolve_path($result, $this->path, FALSE);
+
 		return $this->last_request->result;
 	}
 
