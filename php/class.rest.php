@@ -54,19 +54,19 @@ class REST {
 				break;
 			case "DELETE":
 				if(!is_string($this->params)) {
-					$this->params = http_build_query($this->params);
+					$arams = http_build_query($this->params);
 				}
 
 				curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
 				curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-				curl_setopt($ch, CURLOPT_URL, $this->url . '?' . $this->params);
+				curl_setopt($ch, CURLOPT_URL, $this->url . '?' . $params);
 				break;
 			case "GET":
 			default:
 				if(!is_string($this->params)) {
-					$this->params = http_build_query($this->params);
+					$params = http_build_query($this->params);
 				}
-				curl_setopt($ch, CURLOPT_URL, $url . '?' . $this->params);
+				curl_setopt($ch, CURLOPT_URL, $url . '?' . $params);
 				break;
 		}
 
