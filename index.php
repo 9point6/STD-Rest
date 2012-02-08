@@ -1,19 +1,14 @@
 <?php
 
 require_once("php/class.apifactory.php");
-
-require_once("php/hooks.shopify.php");
+require_once("php/class.cache.php");
 
 $api = new APIFactory();
-$api->hooked[] = new Shopify_hooks($api);
 
-$api->fromJSON("./apis/shopify.json");
+$api->fromJSON("./apis/mobicart.json");
 
-$api->shop_url = "hamill-group9217";
-$api->api_key = $key;
-$api->password = $pass;
-
-print "<pre>";
+$api->api_key = 1234;
+$api->user_name = 'richthegeek@gmail.com';
 
 print_r(
 // $api->articles()

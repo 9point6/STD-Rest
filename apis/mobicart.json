@@ -39,7 +39,7 @@
 			"pattern" : "/^(pending|cancel|processing|completed)$/"
 		},
 		"store_status" : {
-			"pattern" : "/^(active|inactive|hidden|sold|coming)$/",
+			"pattern" : "/^(active|inactive|true|false|hidden|sold|coming)$/",
 			"fields" : ["status", "department_status", "category_status"]
 		},
 		"hrefs" : {
@@ -60,48 +60,55 @@
 		"store.get" : {
 			"url" : "stores",
 			"path" : "store",
-			"docs_name" : "store"
+			"docs_name" : "store",
+			"cache" : 86400
 		},
 
 		"store.get_settings" : {
 			"url" : "store-settings",
 			"required" : ["store_id"],
 			"path" : "store",
-			"docs_name" : "storeStettings"
+			"docs_name" : "storeStettings",
+			"cache" : 86400
 		},
 
 		"store.get_shipping" : {
 			"url" : "store-shipping",
 			"required" : ["store_id"],
 			"path" : "store",
-			"docs_name" : "storeShipping"
+			"docs_name" : "storeShipping",
+			"cache" : 86400
 		},
 
 		"store.get_tax" : {
 			"url" : "store-tax",
 			"required" : ["store_id"],
 			"path" : "store",
-			"docs_name" : "storeTax"
+			"docs_name" : "storeTax",
+			"cache" : 86400
 		},
 
 		"store.get_countries" : {
 			"url" : "countries",
 			"path" : "countries",
-			"docs_name" : "getCountries"
+			"docs_name" : "getCountries",
+			"cache" : 2592000
 		},
 
 		"store.get_states" : {
 			"url" : "states",
 			"required" : ["territory_id"],
 			"path" : "states",
-			"docs_name" : "getStates"
+			"docs_name" : "getStates",
+			"cache" : 2592000
 		},
 
 		"store.get_shipping_rate": {
 			"url" : "shipping-rate",
 			"required" : ["store_id", "country_id", "state_id"],
 			"path" : "Shipping",
-			"docs_name" : "shippingRate"
+			"docs_name" : "shippingRate",
+			"cache" : 2592000
 		},
 
 		"store.set_shipping_rate" : {
@@ -109,35 +116,49 @@
 			"request_type" : "post",
 			"required" : "store_id,country_id,state_id,shipping_single,shipping_multiple",
 			"path" : "message/message",
-			"docs_name" : "setShippingRate"
+			"docs_name" : "setShippingRate",
+			"cache_clear" : ["store.get-settings", "store.get-shipping"]
+		},
+
+		"store.delete_shipping_rate" : {
+			"url" : "delete-shipping-rate",
+			"request_type" : "DELETE",
+			"required" : "shipping_id",
+			"path" : "message/message",
+			"docs_name" : "deleteShippingRate",
+			"cache_clear" : ["store.get-settings", "store.get-shipping"]	
 		},
 
 		"products.get_all" : {
 			"url" : "store-products",
 			"required" : "store_id",
 			"path" : "products/products",
-			"docs_name" : "storeProducts"
+			"docs_name" : "storeProducts",
+			"cache" : 3600
 		},
 
 		"products.get_by_department" : {
 			"url" : "department-products",
 			"required" : "department_id",
 			"path" : "products/products",
-			"docs_name" : "departmentProducts"
+			"docs_name" : "departmentProducts",
+			"cache" : 3600
 		},
 
 		"products.get_by_subdepartment" : {
 			"url" : "category-products",
 			"required" : "category_id",
 			"path" : "products/products",
-			"docs_name" : "categoryProducts"
+			"docs_name" : "categoryProducts",
+			"cache" : 3600
 		},
 
 		"products.get" : {
 			"url" : "product-details",
 			"required" : "product_id",
 			"path" : "Product",
-			"docs_name" : "productDetails"
+			"docs_name" : "productDetails",
+			"cache" : 3600
 		},
 
 		"products.delete" : {
@@ -145,7 +166,8 @@
 			"request_type" : "delete",
 			"required" : "product_id",
 			"path" : "message/message",
-			"docs_name" : "deleteProduct"
+			"docs_name" : "deleteProduct",
+			"cache_clear" : "product"
 		},
 
 		"products.add" : {
@@ -154,7 +176,8 @@
 			"required" : "department_id, product_name, f_price",
 			"optional" : "category_id, product_description, status, discount, product_image_url, sale_label, video_url, aggregate_quantity, featured",
 			"path" : "message",
-			"docs_name" : "addProduct"
+			"docs_name" : "addProduct",
+			"cache_clear" : "product"
 		},
 
 		"products.update" : {
@@ -163,7 +186,8 @@
 			"required" : "product_id, product_name, f_price",
 			"optional" : "department_id, category_id, product_description, status, discount, product_image_url, sale_label, video_url, aggregate_quantity, featured",
 			"path" : "message",
-			"docs_name" : "updateProduct"
+			"docs_name" : "updateProduct",
+			"cache_clear" : "product"
 		},
 
 		"products.add_option" : {
@@ -172,7 +196,8 @@
 			"required" : "product_id, option_title, option_name",
 			"optional" : "sku_id, option_quantity",
 			"path" : "message",
-			"docs_name" : "addProductOption"
+			"docs_name" : "addProductOption",
+			"cache_clear" : "product"
 		},
 
 		"products.update_option" : {
@@ -181,7 +206,17 @@
 			"required" : "product_option_id, option_title, option_name",
 			"optional" : "sku_id, option_quantity",
 			"path" : "message",
-			"docs_name" : "updateProductOption"
+			"docs_name" : "updateProductOption",
+			"cache_clear" : "product"
+		},
+
+		"products.delete_option" : {
+			"url" : "delete-productOption",
+			"request_type" : "delete",
+			"required" : "product_option_id",
+			"path" : "message",
+			"docs_name" : "deleteProductOption",
+			"cache_clear" : "product"
 		},
 
 		"products.add_image" : {
@@ -189,7 +224,8 @@
 			"request_type" : "post",
 			"required" : "product_id, product_image_url",
 			"path" : "message",
-			"docs_name" : "addProductImage"
+			"docs_name" : "addProductImage",
+			"cache_clear" : "product"
 		},
 
 		"products.update_image" : {
@@ -197,7 +233,17 @@
 			"request_type" : "post",
 			"required" : "product_image_id, product_image_url",
 			"path" : "message",
-			"docs_name" : "updateProductImages"
+			"docs_name" : "updateProductImages",
+			"cache_clear" : "product"
+		},
+
+		"products.delete_image" : {
+			"url" : "delete-product-image",
+			"request_type" : "delete",
+			"require" : "product_image_id",
+			"path" : "message",
+			"docs_name" : "deleteProductImage",
+			"cache_clear" : "product"
 		},
 
 		"products.bulk_upload" : {
@@ -206,29 +252,33 @@
 			"required" : "store_id, product_file",
 			"path" : "message",
 			"validation" : {"product_file" : "|^@.+|"},
-			"docs_name" : "bulkUpload"
+			"docs_name" : "bulkUpload",
+			"cache_clear" : "product"
 		},
 
 		"user.get" : {
 			"url" : "merchant-profile",
 			"path" : "merchant",
-			"docs_name" : "merchantProfile"
+			"docs_name" : "merchantProfile",
+			"cache" : 86400
 		},
 
 		"user.update" : {
 			"url" : "update-merchant-profile",
 			"request_type" : "post",
 			"required" : "firstName",
-			"optional" : "lastName, companyLogoUrl, companyWebsite, payPalAddress, companyRegNumber, taxRegNumber",
+			"optional" : "lastName, companyLogoUrl, companyWebsite, payPalAddress, companyRegNumber, taxRegNumber, address, city, state_id, country_id, zipcode, orderEmailAddress, storeName",
 			"path" : "message/message",
-			"docs_name" : "updateMerchantProfile"
+			"docs_name" : "updateMerchantProfile",
+			"cache_clear" : "user"
 		},
 
 		"images.get" : {
 			"url" : "store-gallery-images",
 			"required" : "store_id",
 			"path" : "GalleryImageList/images",
-			"docs_name" : "galleryImagesUnderStore"
+			"docs_name" : "galleryImagesUnderStore",
+			"cache" : 3600
 		},
 
 		"images.add" : {
@@ -236,7 +286,8 @@
 			"request_type" : "post",
 			"required" : "store_id, gallery_image_url",
 			"path" : "message/message",
-			"docs_name" : "addGalleryImagesUnderStore"
+			"docs_name" : "addGalleryImagesUnderStore",
+			"cache_clear" : "images"
 		},
 
 		"images.delete" : {
@@ -244,7 +295,8 @@
 			"request_type" : "delete",
 			"required" : "image_id",
 			"path" : "message/message",
-			"docs_name" : "deleteGalleryImage"
+			"docs_name" : "deleteGalleryImage",
+			"cache_clear" : "images"
 		},
 
 		"order.add" : {
@@ -255,7 +307,8 @@
 						  "s_shipping_country", "s_billing_street", "s_billing_city", "s_billing_state",
 						  "s_billing_postal_code", "s_billing_country", "d_order_date", "s_status"],
 			"path" : "message/message",
-			"docs_name" : "addProductOrder"
+			"docs_name" : "addProductOrder",
+			"clear_cache" : "order"
 		},
 
 		"order.get_all" : {
@@ -268,7 +321,8 @@
 			"url" : "order-details",
 			"required": "order_id",
 			"path" : "order-details",
-			"docs_name" : "orderDetails"
+			"docs_name" : "orderDetails",
+			"cache" : 3600
 		},
 
 		"order.get_by_date" : {
@@ -290,7 +344,8 @@
 			"required" : "product_id, order_id, amount_quantity",
 			"optional" : "product_option_id",
 			"path" : "message/message",
-			"docs_name" : "addOrderItem"
+			"docs_name" : "addOrderItem",
+			"clear_cache" : "order"
 		},
 
 		"order.update_item" : {
@@ -298,7 +353,8 @@
 			"request_type" : "post",
 			"required" : "order_item_id, amount, quantity",
 			"path" : "message/message",
-			"docs_name" : "updateOrderItem"
+			"docs_name" : "updateOrderItem",
+			"clear_cache" : "order"
 		},
 
 		"order.get_shipping_status" : {
@@ -313,7 +369,8 @@
 			"request_type" : "post",
 			"required" : "order_id, tracking_number, shipping_carrier, shipping_status",
 			"path" : "message/message",
-			"docs_name" : "addShippingStatus"
+			"docs_name" : "addShippingStatus",
+			"clear_cache" : "order"
 		},
 
 		"order.update_shipping_status" : {
@@ -321,14 +378,16 @@
 			"request_type" : "post",
 			"required" : "tracking_number, shipping_status",
 			"path" : "message/message",
-			"docs_name" : "updateShippingStatus"
+			"docs_name" : "updateShippingStatus",
+			"clear_cache" : "order"
 		},
 
 		"department.get" : {
 			"url" : "store-departments",
 			"required" : "store_id",
 			"path" : "DepartmentList/departments",
-			"docs_name" : "departmentsForStore"
+			"docs_name" : "departmentsForStore",
+			"cache" : 3600
 		},
 
 		"department.add" : {
@@ -337,7 +396,8 @@
 			"required" : "store_id, department_name",
 			"optional" : "department_status",
 			"path" : "message",
-			"docs_name" : "addDepartmentUnderStore"
+			"docs_name" : "addDepartmentUnderStore",
+			"clear_cache" : "department"
 		},
 
 		"department.update" : {
@@ -346,7 +406,8 @@
 			"required" : "department_id, department_name",
 			"optional" : "department_status",
 			"path" : "message/message",
-			"docs_name" : "updateDepartmentUnderStore"
+			"docs_name" : "updateDepartmentUnderStore",
+			"clear_cache" : "department"
 		},
 
 		"department.delete" : {
@@ -354,7 +415,8 @@
 			"request_type" : "delete",
 			"required" : "department_id",
 			"path" : "message/message",
-			"docs_name" : "deleteDepartmentUnderStore"
+			"docs_name" : "deleteDepartmentUnderStore",
+			"clear_cache" : "department"
 		},
 
 		"department.subdepartments" : {
@@ -367,9 +429,10 @@
 		"subdepartment.add" : {
 			"url" : "add-sub-department-nested",
 			"request_type" : "post",
-			"required" : "department_id, parent_category_id, category_name, category_status",
+			"required" : "department_id, category_name, category_status",
 			"path" : "message",
-			"docs_name" : "addSubDepartmentUnderSubDepartment"
+			"docs_name" : "addSubDepartmentUnderSubDepartment",
+			"clear_cache" : "subdepartment"
 		},
 
 		"subdepartment.update" : {
@@ -378,7 +441,8 @@
 			"required" : "category-id, parent_category_id, category_name",
 			"optional" : "category_status",
 			"path" : "message/message",
-			"docs_name" : "updateSubDepartmentUnderSubDepartment"
+			"docs_name" : "updateSubDepartmentUnderSubDepartment",
+			"clear_cache" : "subdepartment"
 		},
 
 		"subdepartment.delete" : {
@@ -386,7 +450,8 @@
 			"request_type" : "delete",
 			"required" : "category_id",
 			"path" : "message/message",
-			"docs_name" : "deleteSubDepartment"
+			"docs_name" : "deleteSubDepartment",
+			"clear_cache" : "subdepartment"
 		}
 	}
 }

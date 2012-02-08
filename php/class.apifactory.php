@@ -27,6 +27,10 @@ class APIFactory {
 			$args = $args[0];
 		}
 
+		if ($pre_return = $this->call_hook($name, false, $args)) {
+			return $pre_return;
+		}
+
 		if(isset($this->methods[$name])) {
 			$this->method = $this->methods[$name];
 		
@@ -65,9 +69,8 @@ class APIFactory {
 						}
 					}
 				}
-
 				if(isset($sig[$key]) && $sig[$key] !== FALSE && $regex && !preg_match($regex, $sig[$key])) {
-					throw new Exception("Validation failed on $name > $key, where value = " . $sig[$key]);
+					throw new Exception("Validation failed on $name:$key, where value = \n    " . $sig[$key] . "\nand pattern =\n    " . $regex . "\n");
 				}
 				if(isset($sig[$key]) && $sig[$key] === FALSE) {
 					unset($sig[$key]);
@@ -85,20 +88,38 @@ class APIFactory {
 
 			$this->rest->url = $this->replace_keys($this->url);
 
-			$this->call_hook("pre_execute", true);
-			if($this->method->authenticated)
-				$this->call_hook("pre_execute_auth", true);
-			
+			if ($pre_return = $this->call_hook("pre_execute", true)) {
+				return $pre_return;
+			}
+			if ($this->method->authenticated && $pre_return = $this->call_hook("pre_execute_auth", true)) {
+				return $pre_return;
+			}
 			$result = $this->rest->execute();
 
-			$result = $this->call_hook("post_execute", true, $result);
+			if ($new_result = $this->call_hook("post_execute", true, $result)) {
+				return $new_result;
+			}
 
-			# 0 comes from hook
-			return $result[0];
+			return $result;
 		}
 		else {
 			throw new Exception("Call to undefined method `$name`");
 		}
+	}
+
+	function add_hooker($name) {
+		if (class_exists($name)) {
+			$obj = new $name($this);
+			$obj->APIFactory = $this;
+			
+			$this->hooked[] = $obj;
+			if (!property_exists($this, $name)) {
+				$this->$name = $obj;
+			}
+			
+			return $obj;
+		}
+		return FALSE;
 	}
 
 	function call_hook($hook, $extra = false) {
@@ -116,13 +137,17 @@ class APIFactory {
 
 		$hook = "hook_" . $hook;
 
+		$found = FALSE;
 		foreach($this->hooked as $obj) {
 			if(method_exists($obj, $hook)) {
-				$args = array(call_user_func_array(array($obj, $hook), $args));
+				$found = TRUE;
+				$result = call_user_func_array(array($obj, $hook), $args);
+				if ($result !== NULL) {
+					return $result;
+				}
 			}
 		}
-
-		return $args;
+		return NULL;
 	}
 
 
@@ -218,7 +243,10 @@ class APIFactory {
 
 		# assign any unused $args to any unfilled $sig
 		foreach($sig as $key=>$value) {
-
+			if ($sig[$key] != NULL) {
+				continue;
+			}
+			
 			if(!$sig[$key] && count($args)) { # if there are unused $args
 				$sig[$key] = array_shift($args);
 				continue;
@@ -232,8 +260,9 @@ class APIFactory {
 
 			if($val = $this->get_param($key)) # if there is a param of the correct name
 				$sig[$key] = $val;
-			else if($sig[$key] === NULL) # if it is required and is still empty by now
+			else if($sig[$key] === NULL) { # if it is required and is still empty by now
 				throw new Exception("Required field $key not set");
+			}
 		}
 
 		return $sig;
@@ -301,7 +330,7 @@ class APIFactory {
 				}
 			}
 		}
-
+		
 		$this->rest->error_check = get($json, "error_check_path");
 		$this->rest->error_return = get($json, "error_return_path");
 
@@ -318,7 +347,7 @@ class APIFactory {
 			if($this->docs && $pattern = get($this->docs, "pattern"))
 				$docs = $this->replace_keys($pattern, false, $method);
 
-			$m =& $this->add_method($name, $required, $optional, $validation, $path, $auth, $type, $docs);
+			$m =& $this->add_method($method, $name, $required, $optional, $validation, $path, $auth, $type, $docs);
 
 			# add other items..
 			foreach($method as $key=>$value) {
@@ -332,7 +361,7 @@ class APIFactory {
 		return $this;
 	}
 
-	function add_method($name, $required = array(), $optional = array(), $validation = array(), $path = "", $authenticated = false, $method = "get", $docs = false) {
+	function add_method($source, $name, $required = array(), $optional = array(), $validation = array(), $path = "", $authenticated = false, $method = "get", $docs = false) {
 		$m = new APIMethod();
 		$m->set_name($name);
 		$m->set_required($required);
@@ -341,7 +370,11 @@ class APIFactory {
 		$m->set_path($path);
 		$m->set_authenticated($authenticated);
 		$m->set_request_type($method);
-		$m->set_docs($docs); # does not do string replacement.		
+		$m->set_docs($docs); # does not do string replacement.
+		
+		if ($method = $this->call_hook('add_method', FALSE, $m, $source)) {
+			$m = $method;
+		}	
 
 		$name = preg_replace("/([^a-z]+)/i", "_", $name);
 		$this->methods[$name] = $m;

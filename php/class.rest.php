@@ -54,7 +54,7 @@ class REST {
 				break;
 			case "DELETE":
 				if(!is_string($this->params)) {
-					$arams = http_build_query($this->params);
+					$params = http_build_query($this->params);
 				}
 
 				curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
@@ -99,8 +99,6 @@ class REST {
 			return $this->last_request->raw;
 		}
 
-		// print_r($result);
-
 		# check for errors.
 		if($this->error_check && $err1 = $this->resolve_path($result, $this->error_check, TRUE)) {
 			if($this->error_return && $err2 = $this->resolve_path($result, $this->error_return, TRUE)) {}
@@ -113,7 +111,6 @@ class REST {
 		$this->last_request->result = $this->resolve_path($result, $this->path, FALSE);
 
 		$this->reset();
-
 
 		return $this->last_request->result;
 	}
