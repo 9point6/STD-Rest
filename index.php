@@ -4,7 +4,7 @@ require_once("php/class.apifactory.php");
 require_once("php/class.cache.php");
 
 $api = new APIFactory();
-
+$api->add_hooker('AF_Cache');
 $api->fromJSON("./apis/mobicart.json");
 
 $api->api_key = 1234;
